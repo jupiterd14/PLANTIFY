@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Planify</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #b47c9e20, #edd9e680);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .register-container {
+            background: white;
+            border-radius: 32px;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.1);
+        }
+        .logo {
+            text-align: center;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #b47c9e;
+            margin-bottom: 30px;
+        }
+        h2 { text-align: center; margin-bottom: 24px; color: #2c2b2a; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        label { display: block; margin-bottom: 6px; font-weight: 600; color: #6b625c; }
+        
+        /* Password wrapper for toggle button */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #ede6e0;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            padding-right: 70px;
+        }
+        .password-wrapper input:focus {
+            outline: none;
+            border-color: #b47c9e;
+            box-shadow: 0 0 0 3px rgba(180,124,158,0.1);
+        }
+        
+        /* Toggle button styling */
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 500;
+            padding: 0;
+            width: auto;
+            color: #a39a93;
+            transition: color 0.2s;
+        }
+        .toggle-password:hover {
+            background: none;
+            transform: translateY(-50%);
+            color: #b47c9e;
+        }
+        
+        button[type="submit"] {
+            width: 100%;
+            padding: 14px;
+            background: #b47c9e;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        button[type="submit"]:hover { background: #8e5e7c; transform: translateY(-1px); }
+        
+        .flash-messages {
+            margin-bottom: 20px;
+            padding: 12px;
+            border-radius: 12px;
+        }
+        .links { text-align: center; margin-top: 20px; }
+        .links a { color: #b47c9e; text-decoration: none; }
+        
+        /* Password strength indicator */
+        .password-strength {
+            margin-top: 8px;
+            font-size: 0.7rem;
+        }
+        .strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            margin-top: 6px;
+            transition: all 0.3s;
+            background: #ede6e0;
+        }
+        .strength-bar.weak { background: #d36f6f; width: 33%; }
+        .strength-bar.medium { background: #e0a23b; width: 66%; }
+        .strength-bar.strong { background: #5f9c7b; width: 100%; }
+        .strength-text { color: #6b625c; margin-top: 4px; display: block; }
+        
+        /* Regular input styling (non-password fields) */
+        .form-group:not(.has-toggle) input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1.5px solid #ede6e0;
+            border-radius: 16px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        .form-group:not(.has-toggle) input:focus {
+            outline: none;
+            border-color: #b47c9e;
+            box-shadow: 0 0 0 3px rgba(180,124,158,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="register-container">
+        <div class="logo">Planify</div>
+        <h2>Create Account</h2>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="flash-messages" style="background: {% if category == 'danger' %}#f8d7da{% elif category == 'success' %}#d4edda{% else %}#d1ecf1{% endif %}; color: {% if category == 'danger' %}#721c24{% elif category == 'success' %}#155724{% else %}#0c5460{% endif %};">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        <form method="POST" id="registerForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" id="username" required placeholder="Choose a username">
+            </div>
+            
+            <div class="form-group">
+                <label>Email</label>
+                <input type="email" name="email" id="email" required placeholder="Enter your email">
+            </div>
+            
+            <div class="form-group has-toggle">
+                <label>Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="password" id="password" required placeholder="Create a password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('password')">
+                        Show
+                    </button>
+                </div>
+                <div class="password-strength">
+                    <div class="strength-bar" id="strengthBar"></div>
+                    <span class="strength-text" id="strengthText"></span>
+                </div>
+            </div>
+            
+            <div class="form-group has-toggle">
+                <label>Confirm Password</label>
+                <div class="password-wrapper">
+                    <input type="password" name="confirm_password" id="confirm_password" required placeholder="Confirm your password">
+                    <button type="button" class="toggle-password" onclick="togglePassword('confirm_password')">
+                        Show
+                    </button>
+                </div>
+            </div>
+            
+            <button type="submit">Sign Up</button>
+        </form>
+        
+        <div class="links">
+            <p>Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+        </div>
+    </div>
+
+    <script>
+        // Toggle password visibility
+        function togglePassword(fieldId) {
+            const field = document.getElementById(fieldId);
+            const wrapper = field.closest('.password-wrapper');
+            const toggleBtn = wrapper.querySelector('.toggle-password');
+            
+            if (field.type === 'password') {
+                field.type = 'text';
+                toggleBtn.textContent = 'Hide';
+            } else {
+                field.type = 'password';
+                toggleBtn.textContent = 'Show';
+            }
+        }
+        
+        // Password strength checker
+        const passwordInput = document.getElementById('password');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        
+        if (passwordInput) {
+            passwordInput.addEventListener('input', function() {
+                const password = this.value;
+                let strength = 0;
+                let message = '';
+                
+                // Length check
+                if (password.length >= 8) strength += 1;
+                if (password.length >= 12) strength += 1;
+                
+                // Uppercase check
+                if (/[A-Z]/.test(password)) strength += 1;
+                
+                // Lowercase check
+                if (/[a-z]/.test(password)) strength += 1;
+                
+                // Number check
+                if (/[0-9]/.test(password)) strength += 1;
+                
+                // Special character check
+                if (/[^A-Za-z0-9]/.test(password)) strength += 1;
+                
+                // Determine strength
+                if (password.length === 0) {
+                    message = '';
+                    strengthBar.className = 'strength-bar';
+                } else if (strength <= 2) {
+                    message = 'Weak password';
+                    strengthBar.className = 'strength-bar weak';
+                } else if (strength <= 4) {
+                    message = 'Medium password';
+                    strengthBar.className = 'strength-bar medium';
+                } else {
+                    message = 'Strong password';
+                    strengthBar.className = 'strength-bar strong';
+                }
+                
+                strengthText.textContent = message;
+            });
+        }
+        
+        // Confirm password validation
+        const confirmInput = document.getElementById('confirm_password');
+        const form = document.getElementById('registerForm');
+        
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const password = document.getElementById('password').value;
+                const confirm = document.getElementById('confirm_password').value;
+                
+                if (password !== confirm) {
+                    e.preventDefault();
+                    alert('Passwords do not match');
+                    document.getElementById('confirm_password').style.borderColor = '#d36f6f';
+                    return false;
+                }
+                
+                // Email validation
+                const email = document.getElementById('email').value;
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    e.preventDefault();
+                    alert('Please enter a valid email address');
+                    document.getElementById('email').style.borderColor = '#d36f6f';
+                    return false;
+                }
+                
+                // Username validation (no special chars, min 3 chars)
+                const username = document.getElementById('username').value;
+                const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+                if (!usernameRegex.test(username)) {
+                    e.preventDefault();
+                    alert('Username must be 3-20 characters and can only contain letters, numbers, and underscores');
+                    document.getElementById('username').style.borderColor = '#d36f6f';
+                    return false;
+                }
+            });
+        }
+        
+        // Clear error styling on focus
+        const inputs = ['username', 'email', 'password', 'confirm_password'];
+        inputs.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('focus', function() {
+                    this.style.borderColor = '#ede6e0';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

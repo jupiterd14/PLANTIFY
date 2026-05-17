@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Planify 🌸 — Your Cozy Planner</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,700;1,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blush:#f7c5d0;--rose:#e8849a;--deep-rose:#c4566e;
+    --cream:#fff8f0;--warm:#fde8d0;--lavender:#e8d5f5;
+    --mint:#c8f0e8;--sky:#d0eaf7;--butter:#fdf0c0;
+    --text:#3a2a35;--text-soft:#7a6070;--card:#fffcfa;
+    --shadow:rgba(196,86,110,0.12);--urgent:#ff6b6b;
+    --warning:#ffb347;--safe:#6bcfa0;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;overflow-x:hidden;}
+  body::before{content:'';position:fixed;top:-120px;right:-120px;width:380px;height:380px;background:radial-gradient(circle,#f7c5d088 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0;}
+  body::after{content:'';position:fixed;bottom:-100px;left:-100px;width:320px;height:320px;background:radial-gradient(circle,#e8d5f588 0%,transparent 70%);border-radius:50%;pointer-events:none;z-index:0;}
+
+  header{position:sticky;top:0;z-index:100;background:rgba(255,248,240,0.88);backdrop-filter:blur(16px);border-bottom:1.5px solid var(--blush);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+  .logo{font-family:'Playfair Display',serif;font-size:1.4rem;color:var(--deep-rose);display:flex;align-items:center;gap:6px;}
+  .header-right{display:flex;align-items:center;gap:8px;}
+  .date-pill{background:var(--blush);border-radius:20px;padding:5px 12px;font-size:0.74rem;font-weight:700;color:var(--deep-rose);}
+  .coins-pill{background:linear-gradient(135deg,#ffe066,#ffb347);border-radius:20px;padding:5px 12px;font-size:0.78rem;font-weight:800;color:#7a4a00;display:flex;align-items:center;gap:4px;cursor:pointer;box-shadow:0 2px 8px rgba(255,180,0,0.25);transition:transform 0.15s;}
+  .coins-pill:hover{transform:scale(1.05);}
+
+  .tabs{display:flex;background:var(--warm);border-radius:20px;margin:16px 14px 0;padding:4px;gap:2px;position:relative;z-index:1;}
+  .tab{flex:1;padding:9px 5px;border:none;background:transparent;border-radius:16px;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.75rem;color:var(--text-soft);cursor:pointer;transition:all 0.25s;display:flex;align-items:center;justify-content:center;gap:3px;}
+  .tab.active{background:white;color:var(--deep-rose);box-shadow:0 2px 12px var(--shadow);}
+  .tab:hover:not(.active){color:var(--rose);}
+
+  main{padding:14px;position:relative;z-index:1;max-width:520px;margin:0 auto;}
+  .section{display:none;}
+  .section.active{display:block;animation:fadeUp 0.3s ease;}
+  @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+  .section-title{font-family:'Playfair Display',serif;font-size:1.2rem;color:var(--deep-rose);margin-bottom:14px;display:flex;align-items:center;gap:8px;}
+  .card{background:var(--card);border-radius:20px;padding:16px;margin-bottom:14px;border:1.5px solid #f0e0e8;box-shadow:0 4px 20px var(--shadow);}
+
+  .form-group{margin-bottom:11px;}
+  label{display:block;font-weight:700;font-size:0.8rem;color:var(--text-soft);margin-bottom:4px;}
+  input,select,textarea{width:100%;border:1.5px solid #f0dde6;border-radius:12px;padding:9px 13px;font-family:'Nunito',sans-serif;font-size:0.88rem;color:var(--text);background:#fffafd;outline:none;transition:border-color 0.2s;}
+  input:focus,select:focus,textarea:focus{border-color:var(--rose);box-shadow:0 0 0 3px rgba(232,132,154,0.15);}
+  textarea{resize:vertical;min-height:68px;}
+  select{appearance:none;cursor:pointer;}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+
+  .priority-group{display:flex;gap:8px;}
+  .priority-btn{flex:1;padding:8px;border:1.5px solid #f0dde6;border-radius:10px;background:white;cursor:pointer;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.76rem;text-align:center;transition:all 0.2s;}
+  .priority-btn.low.selected{background:#d4f7e8;border-color:#6bcfa0;color:#2a7a55;}
+  .priority-btn.med.selected{background:#fff3d4;border-color:#ffb347;color:#7a5000;}
+  .priority-btn.high.selected{background:#ffd4d4;border-color:#ff6b6b;color:#7a0000;}
+
+  .btn-primary{width:100%;background:linear-gradient(135deg,var(--rose),var(--deep-rose));color:white;border:none;border-radius:14px;padding:12px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.92rem;cursor:pointer;margin-top:5px;transition:all 0.2s;box-shadow:0 4px 14px rgba(196,86,110,0.35);}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(196,86,110,0.45);}
+  .btn-primary:active{transform:translateY(0);}
+
+  .item-card{background:white;border-radius:16px;padding:13px 15px;margin-bottom:10px;border:1.5px solid #f0e0e8;box-shadow:0 2px 12px var(--shadow);display:flex;align-items:flex-start;gap:11px;position:relative;overflow:hidden;animation:fadeUp 0.3s ease;transition:transform 0.2s,box-shadow 0.2s,opacity 0.3s;}
+  .item-card:hover{transform:translateY(-1px);box-shadow:0 6px 20px var(--shadow);}
+  .item-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;}
+  .item-card.low::before{background:var(--safe);}
+  .item-card.med::before{background:var(--warning);}
+  .item-card.high::before{background:var(--urgent);}
+  .item-card.schedule::before{background:#a78bfa;}
+  .item-card.done{opacity:0.52;}
+  .item-card.done .item-title{text-decoration:line-through;}
+  .item-card.deleting{animation:slideOut 0.35s ease forwards;}
+  @keyframes slideOut{to{opacity:0;transform:translateX(60px) scale(0.9);}}
+  .item-card.completing{animation:completePop 0.4s ease;}
+  @keyframes completePop{0%{transform:scale(1)}40%{transform:scale(1.05)}70%{transform:scale(0.98)}100%{transform:scale(1)}}
+
+  .item-icon{font-size:1.4rem;flex-shrink:0;margin-top:1px;}
+  .item-body{flex:1;min-width:0;}
+  .item-title{font-weight:800;font-size:0.93rem;color:var(--text);margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .item-meta{font-size:0.76rem;color:var(--text-soft);display:flex;flex-wrap:wrap;gap:5px;align-items:center;}
+  .badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:20px;font-size:0.7rem;font-weight:700;}
+  .badge.low{background:#d4f7e8;color:#2a7a55;}
+  .badge.med{background:#fff3d4;color:#7a5000;}
+  .badge.high{background:#ffd4d4;color:#7a0000;}
+  .badge.time{background:var(--lavender);color:#5a3a8a;}
+  .badge.due{background:var(--butter);color:#7a6000;}
+  .item-actions{display:flex;flex-direction:column;gap:5px;flex-shrink:0;}
+  .icon-btn{border:none;background:transparent;cursor:pointer;font-size:1rem;border-radius:8px;padding:3px 5px;transition:background 0.15s;}
+  .icon-btn:hover{background:#f7eef2;}
+
+  .countdown{font-size:0.7rem;font-weight:800;border-radius:20px;padding:2px 8px;display:inline-block;}
+  .countdown.urgent{background:#ffd4d4;color:#c0392b;animation:pulse 1.5s infinite;}
+  .countdown.warning{background:#fff3d4;color:#e67e22;}
+  .countdown.safe{background:#d4f7e8;color:#27ae60;}
+  .countdown.past{background:#f0f0f0;color:#999;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.6}}
+
+  .stats-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;}
+  .stat-box{background:white;border-radius:16px;padding:13px 8px;text-align:center;border:1.5px solid #f0e0e8;box-shadow:0 2px 10px var(--shadow);}
+  .stat-num{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:700;color:var(--deep-rose);line-height:1;}
+  .stat-label{font-size:0.68rem;font-weight:700;color:var(--text-soft);margin-top:3px;text-transform:uppercase;letter-spacing:0.5px;}
+
+  .empty-state{text-align:center;padding:36px 20px;color:var(--text-soft);}
+  .empty-state .emoji{font-size:2.5rem;display:block;margin-bottom:9px;}
+  .empty-state p{font-weight:600;font-size:0.88rem;}
+
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(120px);background:white;border:2px solid var(--rose);border-radius:20px;padding:11px 18px;display:flex;align-items:center;gap:9px;box-shadow:0 8px 30px rgba(0,0,0,0.12);z-index:999;font-weight:700;font-size:0.86rem;max-width:310px;width:90%;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);}
+  .toast.show{transform:translateX(-50%) translateY(0);}
+  .toast-icon{font-size:1.3rem;}
+  .toast-text{flex:1;color:var(--text);}
+  .toast-close{cursor:pointer;color:var(--text-soft);}
+
+  .check-wrap{display:flex;align-items:center;justify-content:center;width:24px;height:24px;flex-shrink:0;margin-top:2px;}
+  input[type="checkbox"]{width:19px;height:19px;accent-color:var(--rose);cursor:pointer;}
+
+  .vibration-note{background:linear-gradient(135deg,#fde8f0,#f5e0f8);border-radius:14px;padding:11px 15px;font-size:0.8rem;font-weight:600;color:var(--deep-rose);display:flex;align-items:center;gap:8px;margin-bottom:14px;border:1.5px solid #f0c0d5;}
+  .repeat-group{display:flex;flex-wrap:wrap;gap:6px;}
+  .day-btn{padding:5px 10px;border-radius:20px;border:1.5px solid #f0dde6;background:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:0.73rem;cursor:pointer;transition:all 0.15s;}
+  .day-btn.selected{background:var(--blush);border-color:var(--rose);color:var(--deep-rose);}
+
+  .divider{display:flex;align-items:center;gap:10px;color:var(--text-soft);font-size:0.76rem;font-weight:700;margin:14px 0 10px;text-transform:uppercase;letter-spacing:0.5px;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:#f0dde6;}
+  .list-area{min-height:60px;}
+
+  /* CELEBRATION MODAL */
+  .modal-overlay{position:fixed;inset:0;background:rgba(58,42,53,0.55);backdrop-filter:blur(6px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+  .modal-overlay.show{opacity:1;pointer-events:all;}
+  .modal-box{background:white;border-radius:28px;padding:28px 22px;text-align:center;max-width:310px;width:90%;border:2.5px solid var(--blush);box-shadow:0 20px 60px rgba(196,86,110,0.2);transform:scale(0.85);transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);position:relative;overflow:hidden;}
+  .modal-overlay.show .modal-box{transform:scale(1);}
+  .modal-emoji{font-size:3.2rem;display:block;margin-bottom:8px;animation:bounce 0.7s ease infinite alternate;}
+  @keyframes bounce{from{transform:translateY(0)}to{transform:translateY(-8px)}}
+  .modal-title{font-family:'Playfair Display',serif;font-size:1.35rem;color:var(--deep-rose);margin-bottom:6px;}
+  .modal-msg{font-size:0.86rem;color:var(--text-soft);font-weight:600;margin-bottom:14px;line-height:1.5;}
+  .modal-reward{background:linear-gradient(135deg,#ffe066,#ffb347);border-radius:14px;padding:11px 18px;margin-bottom:14px;display:flex;align-items:center;justify-content:center;gap:10px;}
+  .modal-reward-text{font-weight:800;font-size:0.95rem;color:#7a4a00;}
+  .modal-btn{background:linear-gradient(135deg,var(--rose),var(--deep-rose));color:white;border:none;border-radius:14px;padding:11px 26px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.9rem;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 14px rgba(196,86,110,0.35);}
+  .modal-btn:hover{transform:translateY(-1px);}
+  .confetti-wrap{position:absolute;inset:0;pointer-events:none;overflow:hidden;}
+  .confetti-dot{position:absolute;border-radius:50%;animation:confettiFall linear forwards;}
+  @keyframes confettiFall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(420px) rotate(720deg);opacity:0}}
+
+  /* GAME */
+  .game-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .game-coins-display{background:linear-gradient(135deg,#ffe066,#ffb347);border-radius:14px;padding:8px 16px;font-weight:800;font-size:0.86rem;color:#7a4a00;display:flex;align-items:center;gap:5px;}
+  .game-area{background:white;border-radius:22px;border:2px solid #f0e0e8;box-shadow:0 4px 24px var(--shadow);overflow:hidden;}
+  .game-topbar{background:linear-gradient(135deg,var(--blush),var(--lavender));padding:12px 16px;display:flex;align-items:center;justify-content:space-between;}
+  .game-score-box{text-align:center;}
+  .game-score-label{font-size:0.66rem;font-weight:700;color:var(--deep-rose);text-transform:uppercase;letter-spacing:0.5px;}
+  .game-score-val{font-family:'Playfair Display',serif;font-size:1.5rem;color:var(--deep-rose);line-height:1;}
+  .game-canvas-wrap{position:relative;width:100%;height:330px;background:linear-gradient(160deg,#fff8f0,#fde8f5);cursor:pointer;user-select:none;}
+  #gameCanvas{display:block;width:100%;height:100%;}
+  .overlay-panel{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;background:rgba(255,248,240,0.93);}
+  .overlay-panel.hidden{display:none;}
+  .overlay-emoji{font-size:2.8rem;animation:bounce 0.8s ease infinite alternate;}
+  .overlay-title{font-family:'Playfair Display',serif;font-size:1.25rem;color:var(--deep-rose);}
+  .overlay-sub{font-size:0.8rem;color:var(--text-soft);font-weight:600;text-align:center;max-width:220px;line-height:1.5;}
+  .cost-note{font-size:0.74rem;color:#7a4a00;background:#ffe9a0;border-radius:10px;padding:5px 12px;font-weight:700;}
+  .game-play-btn{background:linear-gradient(135deg,var(--rose),var(--deep-rose));color:white;border:none;border-radius:14px;padding:11px 26px;font-family:'Nunito',sans-serif;font-weight:800;font-size:0.92rem;cursor:pointer;box-shadow:0 4px 14px rgba(196,86,110,0.35);transition:all 0.2s;}
+  .game-play-btn:hover{transform:translateY(-1px);}
+  .go-earned{background:#d4f7e8;border-radius:12px;padding:8px 18px;font-weight:800;color:#2a7a55;font-size:0.86rem;}
+  .game-bottombar{padding:11px 16px;background:#fffafd;border-top:1.5px solid #f0e0e8;display:flex;align-items:center;justify-content:space-between;}
+  .game-instructions{font-size:0.74rem;color:var(--text-soft);font-weight:600;}
+  .game-level-badge{background:var(--lavender);border-radius:10px;padding:4px 12px;font-weight:800;font-size:0.74rem;color:#5a3a8a;}
+
+  .add-type-wrap{display:flex;background:#f7eef5;border-radius:18px;margin-bottom:14px;padding:3px;gap:2px;}
+
+  @media(max-width:380px){
+    .tabs{margin:12px 8px 0;}
+    .tab{font-size:0.68rem;padding:8px 4px;}
+    main{padding:10px;}
+    .row{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><span>🌸</span> Planify</div>
+  <div class="header-right">
+    <div class="date-pill" id="headerDate"></div>
+    <div class="coins-pill" onclick="switchTab('game')">🪙 <span id="headerCoins">0</span></div>
+  </div>
+</header>
+
+<div class="tabs" id="mainTabs">
+  <button class="tab active" onclick="switchTab('dashboard')">🏠 Home</button>
+  <button class="tab" onclick="switchTab('schedule')">🗓 Sched</button>
+  <button class="tab" onclick="switchTab('tasks')">✅ Tasks</button>
+  <button class="tab" onclick="switchTab('add')">＋ Add</button>
+  <button class="tab" onclick="switchTab('game')">🎮 Play</button>
+</div>
+
+<main>
+
+  <!-- DASHBOARD -->
+  <section class="section active" id="sec-dashboard">
+    <div class="section-title">🌼 Good day!</div>
+    <div class="stats-bar">
+      <div class="stat-box"><div class="stat-num" id="stat-tasks">0</div><div class="stat-label">Tasks</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-scheds">0</div><div class="stat-label">Schedules</div></div>
+      <div class="stat-box"><div class="stat-num" id="stat-urgent">0</div><div class="stat-label">Urgent 🚨</div></div>
+    </div>
+    <div class="vibration-note">📳 Sound + haptic reminders are <strong>ON</strong> — you'll feel & hear every deadline!</div>
+    <div class="divider">Upcoming Tasks</div>
+    <div class="list-area" id="upcoming-list"></div>
+    <div class="divider">Today's Schedule</div>
+    <div class="list-area" id="today-schedule-list"></div>
+  </section>
+
+  <!-- SCHEDULE -->
+  <section class="section" id="sec-schedule">
+    <div class="section-title">🗓 Schedules</div>
+    <div class="list-area" id="schedule-list"></div>
+  </section>
+
+  <!-- TASKS -->
+  <section class="section" id="sec-tasks">
+    <div class="section-title">✅ Tasks & Deadlines</div>
+    <div class="list-area" id="task-list"></div>
+  </section>
+
+  <!-- ADD -->
+  <section class="section" id="sec-add">
+    <div class="section-title">✨ Add New</div>
+    <div class="add-type-wrap">
+      <button class="tab active" id="type-sched-btn" onclick="switchAddType('schedule')">🗓 Schedule</button>
+      <button class="tab" id="type-task-btn" onclick="switchAddType('task')">✅ Task / Deadline</button>
+    </div>
+
+    <div class="card" id="form-schedule">
+      <div class="form-group"><label>📌 Title</label><input type="text" id="sched-title" placeholder="e.g. Math Class, Gym, Meeting…"></div>
+      <div class="row">
+        <div class="form-group"><label>🕐 Start Time</label><input type="time" id="sched-time"></div>
+        <div class="form-group"><label>⏱ End Time</label><input type="time" id="sched-end"></div>
+      </div>
+      <div class="form-group">
+        <label>🔁 Repeat Days</label>
+        <div class="repeat-group">
+          <button class="day-btn" data-day="Mon" onclick="toggleDay(this)">Mon</button>
+          <button class="day-btn" data-day="Tue" onclick="toggleDay(this)">Tue</button>
+          <button class="day-btn" data-day="Wed" onclick="toggleDay(this)">Wed</button>
+          <button class="day-btn" data-day="Thu" onclick="toggleDay(this)">Thu</button>
+          <button class="day-btn" data-day="Fri" onclick="toggleDay(this)">Fri</button>
+          <button class="day-btn" data-day="Sat" onclick="toggleDay(this)">Sat</button>
+          <button class="day-btn" data-day="Sun" onclick="toggleDay(this)">Sun</button>
+        </div>
+      </div>
+      <div class="form-group"><label>💬 Notes (optional)</label><textarea id="sched-notes" placeholder="Room, location, reminders…"></textarea></div>
+      <div class="form-group">
+        <label>🎨 Color Tag</label>
+        <select id="sched-color">
+          <option value="lavender">💜 Lavender</option>
+          <option value="mint">💚 Mint</option>
+          <option value="sky">💙 Sky Blue</option>
+          <option value="blush">🩷 Blush Pink</option>
+          <option value="butter">💛 Butter</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="addSchedule()">🌸 Add Schedule</button>
+    </div>
+
+    <div class="card" id="form-task" style="display:none;">
+      <div class="form-group"><label>📌 Task Title</label><input type="text" id="task-title" placeholder="e.g. Submit report, Buy groceries…"></div>
+      <div class="form-group"><label>📝 Description (optional)</label><textarea id="task-desc" placeholder="More details…"></textarea></div>
+      <div class="row">
+        <div class="form-group"><label>📅 Due Date</label><input type="date" id="task-date"></div>
+        <div class="form-group"><label>🕐 Due Time</label><input type="time" id="task-time"></div>
+      </div>
+      <div class="form-group">
+        <label>🚦 Priority</label>
+        <div class="priority-group">
+          <button class="priority-btn low selected" onclick="setPriority('low',this)">🟢 Low</button>
+          <button class="priority-btn med" onclick="setPriority('med',this)">🟡 Medium</button>
+          <button class="priority-btn high" onclick="setPriority('high',this)">🔴 High</button>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>🏷 Category</label>
+        <select id="task-category">
+          <option>📚 School</option><option>🏠 Home</option><option>💼 Work</option>
+          <option>💪 Health</option><option>🛍 Errands</option><option>🎉 Personal</option><option>📝 Other</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="addTask()">✨ Add Task</button>
+    </div>
+  </section>
+
+  <!-- GAME -->
+  <section class="section" id="sec-game">
+    <div class="game-header">
+      <div class="section-title" style="margin:0;">🎮 Bubble Pop!</div>
+      <div class="game-coins-display">🪙 <span id="gameCoinsDisplay">0</span></div>
+    </div>
+    <p style="font-size:0.79rem;color:var(--text-soft);font-weight:600;margin-bottom:12px;">Complete tasks to earn coins, then spend them here!</p>
+    <div class="game-area">
+      <div class="game-topbar">
+        <div class="game-score-box"><div class="game-score-label">Score</div><div class="game-score-val" id="gScore">0</div></div>
+        <div class="game-score-box"><div class="game-score-label">Level</div><div class="game-score-val" id="gLevel">1</div></div>
+        <div class="game-score-box"><div class="game-score-label">Lives</div><div class="game-score-val" id="gLives">3</div></div>
+        <div class="game-score-box"><div class="game-score-label">Best</div><div class="game-score-val" id="gBest">0</div></div>
+      </div>
+      <div class="game-canvas-wrap">
+        <canvas id="gameCanvas"></canvas>
+        <div class="overlay-panel" id="gameStartOverlay">
+          <div class="overlay-emoji">🫧</div>
+          <div class="overlay-title">Bubble Pop!</div>
+          <div class="overlay-sub">Tap bubbles before they float away! Miss 3 and it's game over. ⭐ stars give bonus points!</div>
+          <div class="cost-note">🪙 Costs 5 coins per play — earned by completing tasks!</div>
+          <button class="game-play-btn" onclick="startGame()">▶ Play Now</button>
+        </div>
+        <div class="overlay-panel hidden" id="gameOverOverlay">
+          <div class="overlay-emoji" style="animation:none;">😮</div>
+          <div class="overlay-title">Game Over!</div>
+          <div class="overlay-sub">Final score: <strong id="goFinalScore">0</strong> pts</div>
+          <div class="go-earned" id="goEarned">+0 🪙 earned back</div>
+          <button class="game-play-btn" onclick="startGame()">▶ Play Again</button>
+          <button onclick="showStartScreen()" style="background:none;border:none;color:var(--text-soft);font-family:'Nunito',sans-serif;font-weight:700;font-size:0.8rem;cursor:pointer;">← Back</button>
+        </div>
+      </div>
+      <div class="game-bottombar">
+        <div class="game-instructions">🫧 Tap bubbles to pop them!</div>
+        <div class="game-level-badge" id="gLevelBadge">Level 1</div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- CELEBRATION MODAL -->
+<div class="modal-overlay" id="celebModal">
+  <div class="modal-box">
+    <div class="confetti-wrap" id="confettiWrap"></div>
+    <span class="modal-emoji" id="celebEmoji">🎉</span>
+    <div class="modal-title" id="celebTitle">Task Complete!</div>
+    <div class="modal-msg" id="celebMsg">Amazing work!</div>
+    <div class="modal-reward"><span style="font-size:1.4rem;">🪙</span><div class="modal-reward-text" id="celebReward">+5 coins earned!</div></div>
+    <div style="font-size:0.76rem;color:var(--text-soft);margin-bottom:14px;font-weight:600;">Spend coins on Bubble Pop! 🎮</div>
+    <button class="modal-btn" onclick="closeCelebModal()">Yay, thanks! 🌸</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <span class="toast-icon" id="toast-icon">📳</span>
+  <span class="toast-text" id="toast-text">Reminder!</span>
+  <span class="toast-close" onclick="hideToast()">✕</span>
+</div>
+
+<script>
+// ===== AUDIO ENGINE =====
+let actx = null;
+function getACtx(){if(!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return actx;}
+function playTone(type,freq,dur,vol=0.25){
+  try{
+    const c=getACtx();if(!c)return;
+    const o=c.createOscillator(),g=c.createGain();
+    o.connect(g);g.connect(c.destination);
+    o.type=type;o.frequency.setValueAtTime(freq,c.currentTime);
+    g.gain.setValueAtTime(vol,c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+dur);
+    o.start();o.stop(c.currentTime+dur);
+  }catch(e){}
+}
+function playComplete(){[523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone('sine',f,0.22,0.22),i*75));}
+function playDelete(){[380,260,170].forEach((f,i)=>setTimeout(()=>playTone('sawtooth',f,0.1,0.15),i*55));}
+function playBubblePop(){playTone('sine',700+Math.random()*500,0.09,0.2);}
+function playBubbleMiss(){playTone('triangle',180,0.28,0.15);}
+function playGameOver(){[300,250,210,170].forEach((f,i)=>setTimeout(()=>playTone('sawtooth',f,0.18,0.2),i*90));}
+function playLevelUp(){[523,659,784,1047,1318].forEach((f,i)=>setTimeout(()=>playTone('sine',f,0.18,0.22),i*65));}
+function vib(p){if('vibrate' in navigator)try{navigator.vibrate(p);}catch(e){}}
+
+// ===== STATE =====
+let schedules=JSON.parse(localStorage.getItem('planify_schedules')||'[]');
+let tasks=JSON.parse(localStorage.getItem('planify_tasks')||'[]');
+let coins=parseInt(localStorage.getItem('planify_coins')||'0');
+let bestScore=parseInt(localStorage.getItem('planify_best')||'0');
+let selPri='low';
+
+document.addEventListener('DOMContentLoaded',()=>{
+  setHeaderDate();updateCoins();renderAll();startReminderChecker();setDefDate();initGame();
+});
+
+function setDefDate(){
+  document.getElementById('task-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('task-time').value='23:59';
+}
+function setHeaderDate(){
+  const D=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const n=new Date();
+  document.getElementById('headerDate').textContent=`${D[n.getDay()]}, ${M[n.getMonth()]} ${n.getDate()}`;
+}
+function updateCoins(){
+  document.getElementById('headerCoins').textContent=coins;
+  document.getElementById('gameCoinsDisplay').textContent=coins;
+  document.getElementById('gBest').textContent=bestScore;
+}
+function saveData(){
+  localStorage.setItem('planify_schedules',JSON.stringify(schedules));
+  localStorage.setItem('planify_tasks',JSON.stringify(tasks));
+  localStorage.setItem('planify_coins',coins);
+  localStorage.setItem('planify_best',bestScore);
+}
+
+// ===== TABS =====
+const TABS=['dashboard','schedule','tasks','add','game'];
+function switchTab(tab){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('#mainTabs .tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('sec-'+tab).classList.add('active');
+  const i=TABS.indexOf(tab);
+  if(i>=0)document.querySelectorAll('#mainTabs .tab')[i].classList.add('active');
+  if(tab==='dashboard')renderAll();
+  if(tab==='game')updateCoins();
+}
+function switchAddType(type){
+  document.getElementById('form-schedule').style.display=type==='schedule'?'block':'none';
+  document.getElementById('form-task').style.display=type==='task'?'block':'none';
+  document.getElementById('type-sched-btn').classList.toggle('active',type==='schedule');
+  document.getElementById('type-task-btn').classList.toggle('active',type==='task');
+}
+function setPriority(p,btn){selPri=p;document.querySelectorAll('.priority-btn').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');}
+function toggleDay(btn){btn.classList.toggle('selected');}
+function getSelDays(){return[...document.querySelectorAll('.day-btn.selected')].map(b=>b.dataset.day);}
+
+// ===== ADD SCHEDULE =====
+function addSchedule(){
+  const title=document.getElementById('sched-title').value.trim();
+  const time=document.getElementById('sched-time').value;
+  if(!title){showToast('⚠️','Please enter a title!');return;}
+  if(!time){showToast('⚠️','Please set a time!');return;}
+  const days=getSelDays();
+  schedules.push({id:Date.now(),title,time,endTime:document.getElementById('sched-end').value,notes:document.getElementById('sched-notes').value.trim(),color:document.getElementById('sched-color').value,days:days.length?days:['Mon','Tue','Wed','Thu','Fri'],createdAt:new Date().toISOString()});
+  saveData();renderAll();
+  document.getElementById('sched-title').value='';document.getElementById('sched-time').value='';document.getElementById('sched-end').value='';document.getElementById('sched-notes').value='';document.getElementById('sched-color').value='lavender';document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('selected'));
+  showToast('🌸',`"${title}" added!`);switchTab('schedule');
+}
+
+// ===== ADD TASK =====
+function addTask(){
+  const title=document.getElementById('task-title').value.trim();
+  const date=document.getElementById('task-date').value;
+  if(!title){showToast('⚠️','Please enter a title!');return;}
+  if(!date){showToast('⚠️','Please set a due date!');return;}
+  tasks.push({id:Date.now(),title,desc:document.getElementById('task-desc').value.trim(),date,time:document.getElementById('task-time').value,category:document.getElementById('task-category').value,priority:selPri,done:false,createdAt:new Date().toISOString()});
+  saveData();renderAll();
+  document.getElementById('task-title').value='';document.getElementById('task-desc').value='';setDefDate();selPri='low';document.querySelectorAll('.priority-btn').forEach(b=>b.classList.remove('selected'));document.querySelector('.priority-btn.low').classList.add('selected');
+  showToast('✅',`"${title}" added!`);switchTab('tasks');
+}
+
+// ===== COUNTDOWN =====
+function getCD(d,t){
+  const diff=new Date(`${d}T${t||'23:59'}`)-new Date();
+  if(diff<0)return{label:'Past due',cls:'past'};
+  const h=Math.floor(diff/3600000),m=Math.floor((diff%3600000)/60000),dy=Math.floor(h/24);
+  if(h<6)return{label:`⏰ ${h}h ${m}m left`,cls:'urgent'};
+  if(h<24)return{label:`⚡ ${h}h left`,cls:'warning'};
+  if(dy===1)return{label:'📅 Tomorrow',cls:'warning'};
+  return{label:`📅 ${dy} days left`,cls:'safe'};
+}
+
+const CM={lavender:{bg:'#f0e8ff',border:'#c4a8f0',text:'#5a3a8a'},mint:{bg:'#e0f7ef',border:'#7dd9b5',text:'#1a6a48'},sky:{bg:'#ddf0ff',border:'#7dc4f0',text:'#1a4a6a'},blush:{bg:'#ffe0ec',border:'#f0a0c0',text:'#7a2a4a'},butter:{bg:'#fff8d0',border:'#f0d878',text:'#6a5a00'}};
+const SI={lavender:'💜',mint:'💚',sky:'💙',blush:'🩷',butter:'💛'};
+const CI={'📚 School':'📚','🏠 Home':'🏠','💼 Work':'💼','💪 Health':'💪','🛍 Errands':'🛍','🎉 Personal':'🎉','📝 Other':'📝'};
+
+// ===== RENDER =====
+function renderAll(){renderSchedules();renderTasks();renderDashboard();updateStats();updateCoins();}
+
+function renderSchedules(){
+  const el=document.getElementById('schedule-list');
+  if(!schedules.length){el.innerHTML=`<div class="empty-state"><span class="emoji">🗓</span><p>No schedules yet.<br>Add one in the + tab!</p></div>`;return;}
+  el.innerHTML=schedules.map(s=>{const c=CM[s.color]||CM.lavender;return`<div class="item-card schedule" style="border-color:${c.border};background:${c.bg};"><div class="item-icon">${SI[s.color]||'📅'}</div><div class="item-body"><div class="item-title">${s.title}</div><div class="item-meta"><span class="badge time">🕐 ${s.time}${s.endTime?' – '+s.endTime:''}</span><span class="badge" style="background:${c.bg};color:${c.text};border:1px solid ${c.border};">${s.days.join(', ')}</span></div>${s.notes?`<div style="font-size:0.75rem;color:#7a6070;margin-top:4px;">${s.notes}</div>`:''}</div><div class="item-actions"><button class="icon-btn" onclick="deleteSchedule(${s.id})">🗑</button></div></div>`;}).join('');
+}
+
+function renderTasks(){
+  const el=document.getElementById('task-list');
+  if(!tasks.length){el.innerHTML=`<div class="empty-state"><span class="emoji">✅</span><p>No tasks yet!<br>Yay, you're free~ 🎉</p></div>`;return;}
+  const sorted=[...tasks].sort((a,b)=>{if(a.done!==b.done)return a.done?1:-1;return new Date(`${a.date}T${a.time||'23:59'}`)-new Date(`${b.date}T${b.time||'23:59'}`);});
+  el.innerHTML=sorted.map(t=>{const cd=getCD(t.date,t.time);return`<div class="item-card ${t.priority} ${t.done?'done':''}" id="task-${t.id}"><div class="check-wrap"><input type="checkbox" ${t.done?'checked':''} onchange="toggleTask(${t.id})"></div><div class="item-body"><div class="item-title">${t.title}</div><div class="item-meta"><span class="badge ${t.priority}">${t.priority==='low'?'🟢 Low':t.priority==='med'?'🟡 Med':'🔴 High'}</span><span class="badge due">📅 ${t.date}${t.time?' '+t.time:''}</span><span style="font-size:0.7rem;color:#999;">${t.category}</span></div>${!t.done?`<span class="countdown ${cd.cls}" style="margin-top:5px;display:inline-block;">${cd.label}</span>`:''} ${t.desc?`<div style="font-size:0.75rem;color:#7a6070;margin-top:4px;">${t.desc}</div>`:''}</div><div class="item-actions"><button class="icon-btn" onclick="deleteTask(${t.id})">🗑</button></div></div>`;}).join('');
+}
+
+function renderDashboard(){
+  const now=new Date();
+  const upcoming=tasks.filter(t=>!t.done&&new Date(`${t.date}T${t.time||'23:59'}`)>now).sort((a,b)=>new Date(`${a.date}T${a.time||'23:59'}`)-new Date(`${b.date}T${b.time||'23:59'}`)).slice(0,4);
+  document.getElementById('upcoming-list').innerHTML=upcoming.length?upcoming.map(t=>{const cd=getCD(t.date,t.time);return`<div class="item-card ${t.priority}"><div class="item-icon">${CI[t.category]||'📝'}</div><div class="item-body"><div class="item-title">${t.title}</div><div class="item-meta"><span class="countdown ${cd.cls}">${cd.label}</span><span class="badge ${t.priority}">${t.priority==='high'?'🔴 High':t.priority==='med'?'🟡 Med':'🟢 Low'}</span></div></div></div>`;}).join(''):`<div class="empty-state" style="padding:18px 0;"><span class="emoji">🎉</span><p>All clear! No upcoming tasks.</p></div>`;
+  const todayDay=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][now.getDay()];
+  const ts=schedules.filter(s=>s.days.includes(todayDay)).sort((a,b)=>a.time.localeCompare(b.time));
+  document.getElementById('today-schedule-list').innerHTML=ts.length?ts.map(s=>{const c=CM[s.color]||CM.lavender;return`<div class="item-card schedule" style="border-color:${c.border};background:${c.bg};"><div class="item-icon">${SI[s.color]||'📅'}</div><div class="item-body"><div class="item-title">${s.title}</div><div class="item-meta"><span class="badge time">🕐 ${s.time}${s.endTime?' – '+s.endTime:''}</span></div></div></div>`;}).join(''):`<div class="empty-state" style="padding:18px 0;"><span class="emoji">☕</span><p>Nothing scheduled today!</p></div>`;
+}
+
+function updateStats(){
+  const urgent=tasks.filter(t=>{if(t.done)return false;const d=new Date(`${t.date}T${t.time||'23:59'}`)-new Date();return d>0&&d<86400000;}).length;
+  document.getElementById('stat-tasks').textContent=tasks.filter(t=>!t.done).length;
+  document.getElementById('stat-scheds').textContent=schedules.length;
+  document.getElementById('stat-urgent').textContent=urgent;
+}
+
+// ===== TASK ACTIONS =====
+function toggleTask(id){
+  const task=tasks.find(t=>t.id===id);if(!task)return;
+  task.done=!task.done;saveData();renderAll();
+  if(task.done){
+    playComplete();vib([100,50,100,50,200]);
+    const reward=task.priority==='high'?10:task.priority==='med'?7:5;
+    coins+=reward;saveData();updateCoins();
+    const allDone=tasks.filter(t=>!t.done).length===0;
+    showCelebModal(task,reward,allDone);
+  }else{
+    playTone('sine',350,0.12,0.15);
+  }
+}
+
+function deleteTask(id){
+  const task=tasks.find(t=>t.id===id);if(!task)return;
+  const card=document.getElementById('task-'+id);
+  if(card)card.classList.add('deleting');
+  playDelete();vib([80,40,160]);
+  setTimeout(()=>{tasks=tasks.filter(t=>t.id!==id);saveData();renderAll();showToast('🗑','Task deleted!');},320);
+}
+
+function deleteSchedule(id){
+  const s=schedules.find(x=>x.id===id);if(!s)return;
+  playDelete();vib([80,40,160]);
+  if(confirm(`Delete "${s.title}"?`)){schedules=schedules.filter(x=>x.id!==id);saveData();renderAll();showToast('🗑','Schedule deleted!');}
+}
+
+// ===== CELEBRATION MODAL =====
+const MSGS=["You're on fire! Keep it up! 🔥","One step closer to your goals! 💪","Look at you being productive! 🌟","That's a champion move! 🏆","You're absolutely crushing it! ✨","Another one bites the dust! 🎯","Proud of you, superstar! 🌸"];
+const EMOJIS=['🎉','🌟','🏆','✨','🎊','💫','🥳','🌸'];
+function showCelebModal(task,reward,allDone){
+  const msg=allDone?"WOW — You cleared ALL your tasks! You're a legend! 🦄":MSGS[Math.floor(Math.random()*MSGS.length)];
+  const emoji=allDone?'🦄':EMOJIS[Math.floor(Math.random()*EMOJIS.length)];
+  document.getElementById('celebEmoji').textContent=emoji;
+  document.getElementById('celebTitle').textContent=allDone?'All Done!! 🎊':'Task Complete!';
+  document.getElementById('celebMsg').textContent=msg;
+  document.getElementById('celebReward').textContent=`+${reward} coins earned!`;
+  spawnConfetti();
+  document.getElementById('celebModal').classList.add('show');
+}
+function closeCelebModal(){document.getElementById('celebModal').classList.remove('show');document.getElementById('confettiWrap').innerHTML='';}
+function spawnConfetti(){
+  const wrap=document.getElementById('confettiWrap');wrap.innerHTML='';
+  const colors=['#f7c5d0','#e8849a','#c4566e','#fdf0c0','#e8d5f5','#c8f0e8','#ffb347'];
+  for(let i=0;i<30;i++){const dot=document.createElement('div');dot.className='confetti-dot';const sz=6+Math.random()*10;dot.style.cssText=`width:${sz}px;height:${sz}px;background:${colors[Math.floor(Math.random()*colors.length)]};left:${Math.random()*100}%;top:0;animation-duration:${0.9+Math.random()*1.2}s;animation-delay:${Math.random()*0.4}s;`;wrap.appendChild(dot);}
+}
+
+// ===== TOAST =====
+let toastTimer;
+function showToast(icon,text){document.getElementById('toast-icon').textContent=icon;document.getElementById('toast-text').textContent=text;const t=document.getElementById('toast');t.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3800);}
+function hideToast(){document.getElementById('toast').classList.remove('show');}
+
+// ===== REMINDERS =====
+let notifiedIds=new Set();
+function startReminderChecker(){checkReminders();setInterval(checkReminders,60000);}
+function checkReminders(){
+  const now=new Date();
+  tasks.forEach(t=>{
+    if(t.done||notifiedIds.has(t.id+'-10'))return;
+    const diff=(new Date(`${t.date}T${t.time||'23:59'}`)-now)/60000;
+    if(diff<=60&&diff>55)triggerReminder(t,'⏰ 1 hour left!');
+    if(diff<=30&&diff>25)triggerReminder(t,'⚡ 30 min left!');
+    if(diff<=10&&diff>5){triggerReminder(t,'🚨 10 min — HURRY!');notifiedIds.add(t.id+'-10');}
+  });
+}
+function triggerReminder(task,msg){
+  vib([300,100,300,100,600]);
+  playTone('square',880,0.35,0.2);setTimeout(()=>playTone('square',1100,0.25,0.2),200);
+  showToast('📳',`${msg} "${task.title}"`);
+}
+
+// ===== BUBBLE POP GAME =====
+let gRunning=false,gScore2=0,gLives2=3,gLevel2=1,gBubbles=[],gAnimId=null;
+let gLastSpawn=0,gSpawnInt=1800,gSpeed=0.6,gCoinsEarned=0;
+const scoreTexts=[];
+
+const canvas=document.getElementById('gameCanvas');
+const gctx=canvas.getContext('2d');
+
+const BCOLORS=[
+  {fill:'#ffb3c6',stroke:'#e8849a',em:'🌸'},
+  {fill:'#b3e0ff',stroke:'#7dc4f0',em:'💙'},
+  {fill:'#c8f5e0',stroke:'#7dd9b5',em:'💚'},
+  {fill:'#e8d5f5',stroke:'#c4a8f0',em:'💜'},
+  {fill:'#fff3b3',stroke:'#f0d878',em:'🍋'},
+  {fill:'#ffd4b3',stroke:'#ffb347',em:'🍊'},
+];
+
+function initGame(){
+  resizeCv();window.addEventListener('resize',resizeCv);
+  canvas.addEventListener('click',onCvClick);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();const r=canvas.getBoundingClientRect(),t2=e.touches[0];onCvClick({clientX:t2.clientX,clientY:t2.clientY,_rect:r});},{passive:false});
+}
+function resizeCv(){const w=canvas.parentElement;canvas.width=w.clientWidth;canvas.height=w.clientHeight;}
+
+function onCvClick(e){
+  if(!gRunning)return;
+  const r=e._rect||canvas.getBoundingClientRect();
+  const mx=(e.clientX-r.left)*(canvas.width/r.width);
+  const my=(e.clientY-r.top)*(canvas.height/r.height);
+  for(let i=gBubbles.length-1;i>=0;i--){
+    const b=gBubbles[i];if(b.popping)continue;
+    const dx=mx-b.x,dy=my-b.y;
+    if(dx*dx+dy*dy<=b.r*b.r){
+      b.popping=true;
+      playBubblePop();vib([25]);
+      const pts=b.special?15:5;
+      gScore2+=pts;gCoinsEarned+=b.special?3:1;
+      document.getElementById('gScore').textContent=gScore2;
+      checkLvlUp();
+      scoreTexts.push({x:b.x,y:b.y,txt:'+'+pts,alpha:1,vy:-1.6});
+      break;
+    }
+  }
+}
+
+function checkLvlUp(){
+  const nl=Math.floor(gScore2/50)+1;
+  if(nl>gLevel2){gLevel2=nl;gSpawnInt=Math.max(650,1800-gLevel2*115);gSpeed=0.6+gLevel2*0.18;document.getElementById('gLevel').textContent=gLevel2;document.getElementById('gLevelBadge').textContent='Level '+gLevel2;playLevelUp();vib([50,30,50,30,100]);}
+}
+
+function spawnBubble(){
+  const special=Math.random()<0.1;
+  const col=special?{fill:'#ffd700',stroke:'#ffaa00',em:'⭐'}:BCOLORS[Math.floor(Math.random()*BCOLORS.length)];
+  const r=22+Math.random()*16;
+  gBubbles.push({x:r+Math.random()*(canvas.width-r*2),y:canvas.height+r,r,col,speed:gSpeed+Math.random()*0.35,alpha:1,popping:false,popP:0,special});
+}
+
+function gameLoop(ts){
+  if(!gRunning)return;
+  gctx.clearRect(0,0,canvas.width,canvas.height);
+  if(ts-gLastSpawn>gSpawnInt){spawnBubble();gLastSpawn=ts;}
+  for(let i=gBubbles.length-1;i>=0;i--){
+    const b=gBubbles[i];
+    if(b.popping){b.popP+=0.12;b.alpha=1-b.popP;if(b.popP>=1){gBubbles.splice(i,1);continue;}}
+    else{b.y-=b.speed;if(b.y+b.r<0){gBubbles.splice(i,1);gLives2--;document.getElementById('gLives').textContent=gLives2;playBubbleMiss();vib([120,60,120]);if(gLives2<=0){endGame();return;}continue;}}
+    drawBub(b);
+  }
+  for(let i=scoreTexts.length-1;i>=0;i--){
+    const st=scoreTexts[i];st.y+=st.vy;st.alpha-=0.032;
+    if(st.alpha<=0){scoreTexts.splice(i,1);continue;}
+    gctx.globalAlpha=st.alpha;gctx.font='bold 15px Nunito,sans-serif';gctx.fillStyle='#c4566e';gctx.textAlign='center';gctx.fillText(st.txt,st.x,st.y);gctx.globalAlpha=1;
+  }
+  gAnimId=requestAnimationFrame(gameLoop);
+}
+
+function drawBub(b){
+  const sc=b.popping?1+b.popP*0.5:1;
+  gctx.save();gctx.translate(b.x,b.y);gctx.scale(sc,sc);gctx.globalAlpha=b.alpha;
+  gctx.shadowColor='rgba(0,0,0,0.08)';gctx.shadowBlur=8;
+  const g=gctx.createRadialGradient(-b.r*0.3,-b.r*0.3,b.r*0.1,0,0,b.r);
+  g.addColorStop(0,'rgba(255,255,255,0.7)');g.addColorStop(0.4,b.col.fill+'cc');g.addColorStop(1,b.col.fill+'88');
+  gctx.beginPath();gctx.arc(0,0,b.r,0,Math.PI*2);gctx.fillStyle=g;gctx.fill();
+  gctx.shadowBlur=0;gctx.strokeStyle=b.col.stroke;gctx.lineWidth=1.5;gctx.stroke();
+  gctx.beginPath();gctx.arc(-b.r*0.28,-b.r*0.28,b.r*0.22,0,Math.PI*2);gctx.fillStyle='rgba(255,255,255,0.55)';gctx.fill();
+  gctx.font=`${b.r*0.85}px serif`;gctx.textAlign='center';gctx.textBaseline='middle';gctx.fillText(b.col.em,0,1);
+  gctx.restore();gctx.globalAlpha=1;
+}
+
+function startGame(){
+  if(coins<5){showToast('🪙','Not enough coins! Complete tasks to earn some.');return;}
+  coins-=5;saveData();updateCoins();
+  gScore2=0;gLives2=3;gLevel2=1;gBubbles.length=0;gCoinsEarned=0;gSpawnInt=1800;gSpeed=0.6;gLastSpawn=0;scoreTexts.length=0;
+  ['gScore','gLives','gLevel'].forEach(id=>document.getElementById(id).textContent=id==='gLives'?'3':id==='gScore'?'0':'1');
+  document.getElementById('gLevelBadge').textContent='Level 1';
+  document.getElementById('gameStartOverlay').classList.add('hidden');
+  document.getElementById('gameOverOverlay').classList.add('hidden');
+  gRunning=true;gAnimId=requestAnimationFrame(gameLoop);
+}
+
+function endGame(){
+  gRunning=false;cancelAnimationFrame(gAnimId);playGameOver();vib([200,100,200,100,400]);
+  coins+=gCoinsEarned;saveData();updateCoins();
+  if(gScore2>bestScore){bestScore=gScore2;saveData();document.getElementById('gBest').textContent=bestScore;}
+  document.getElementById('goFinalScore').textContent=gScore2;
+  document.getElementById('goEarned').textContent=`+${gCoinsEarned} 🪙 earned back`;
+  document.getElementById('gameOverOverlay').classList.remove('hidden');
+}
+
+function showStartScreen(){
+  document.getElementById('gameOverOverlay').classList.add('hidden');
+  document.getElementById('gameStartOverlay').classList.remove('hidden');
+  gctx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+// ===== DEMO DATA =====
+if(!localStorage.getItem('planify_schedules')&&!localStorage.getItem('planify_tasks')){
+  const now=new Date(),fmt=d=>d.toISOString().split('T')[0];
+  const tom=new Date(now);tom.setDate(now.getDate()+1);
+  const nw=new Date(now);nw.setDate(now.getDate()+5);
+  schedules=[{id:1,title:'Morning Jog 🏃',time:'06:00',endTime:'07:00',notes:'Park or treadmill',color:'mint',days:['Mon','Wed','Fri'],createdAt:now.toISOString()},{id:2,title:'Team Standup',time:'09:00',endTime:'09:30',notes:'Zoom link in email',color:'sky',days:['Mon','Tue','Wed','Thu','Fri'],createdAt:now.toISOString()}];
+  tasks=[{id:10,title:'Submit project report',desc:'Final draft with charts',date:fmt(tom),time:'17:00',category:'📚 School',priority:'high',done:false,createdAt:now.toISOString()},{id:11,title:'Buy groceries',desc:'Eggs, bread, milk',date:fmt(tom),time:'19:00',category:'🛍 Errands',priority:'med',done:false,createdAt:now.toISOString()},{id:12,title:'Read 20 pages',desc:'',date:fmt(nw),time:'21:00',category:'🎉 Personal',priority:'low',done:false,createdAt:now.toISOString()}];
+  coins=15;saveData();
+}
+</script>
+</body>
+</html>

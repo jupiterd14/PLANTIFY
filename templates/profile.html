@@ -1,0 +1,217 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="profile-avatar">
+            <img src="{{ user.avatar }}" alt="Avatar">
+        </div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            <p class="profile-level">Level {{ user.level }} • {{ user.xp }}/{{ user.level * 100 }} XP</p>
+            <p class="profile-bio">{{ user.bio or "No bio yet" }}</p>
+            <p class="profile-location">📍 {{ user.location or "Location not set" }}</p>
+        </div>
+    </div>
+    
+    <div class="profile-stats-grid">
+        <div class="stat-card">
+            <div class="stat-number" id="profileTasksCompleted">0</div>
+            <div class="stat-label">Tasks Completed</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="profileCompletionRate">0</div>
+            <div class="stat-label">Completion Rate</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="profileThisWeek">0</div>
+            <div class="stat-label">This Week</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number">{{ user.coins }}</div>
+            <div class="stat-label">Coins</div>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="section-title">Edit Profile</div>
+        <form method="POST" action="{{ url_for('profile.edit_profile') }}">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" value="{{ user.username }}">
+            </div>
+            <div class="form-group">
+                <label>Bio</label>
+                <textarea name="bio" rows="3">{{ user.bio }}</textarea>
+            </div>
+            <div class="form-group">
+                <label>Location</label>
+                <input type="text" name="location" value="{{ user.location }}">
+            </div>
+            <button type="submit" class="btn-primary">Save Changes</button>
+        </form>
+    </div>
+    
+    <div class="card">
+        <div class="section-title">Friends ({{ friends|length }})</div>
+        <div id="friendsList" class="friends-list">
+            {% for friend in friends %}
+            <div class="friend-card">
+                <img src="{{ friend.avatar }}" class="friend-avatar">
+                <div class="friend-info">
+                    <div class="friend-name">{{ friend.username }}</div>
+                    <div class="friend-level">Level {{ friend.level }}</div>
+                </div>
+                <div class="friend-status {% if friend.is_online %}online{% else %}offline{% endif %}">
+                    {{ "Online" if friend.is_online else "Offline" }}
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-state">No friends yet. Search for users to add!</p>
+            {% endfor %}
+        </div>
+        
+        <div class="add-friend-section">
+            <h3>Add Friend</h3>
+            <div class="search-box">
+                <input type="text" id="friendSearch" placeholder="Search by username...">
+                <div id="searchResults" class="search-results"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.profile-container { max-width: 800px; margin: 0 auto; }
+.profile-header {
+    background: linear-gradient(135deg, #b47c9e20, #edd9e680);
+    border-radius: 24px;
+    padding: 24px;
+    display: flex;
+    gap: 24px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+.profile-avatar img {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #b47c9e;
+}
+.profile-info h1 { margin: 0 0 8px 0; font-size: 1.8rem; }
+.profile-level { color: #b47c9e; font-weight: 600; margin-bottom: 8px; }
+.profile-bio { color: #6b625c; margin-bottom: 8px; }
+.profile-location { color: #a39a93; font-size: 0.85rem; }
+.profile-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.friends-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px; }
+.friend-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: white;
+    border: 1px solid #ede6e0;
+    border-radius: 16px;
+}
+.friend-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #b47c9e;
+}
+.friend-info { flex: 1; }
+.friend-name { font-weight: 700; margin-bottom: 4px; }
+.friend-level { font-size: 0.75rem; color: #6b625c; }
+.friend-status { font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; }
+.friend-status.online { background: #d4edda; color: #155724; }
+.friend-status.offline { background: #e9ecef; color: #6b625c; }
+.search-box { position: relative; }
+.search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border: 1px solid #ede6e0;
+    border-radius: 16px;
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 100;
+}
+.search-result-item {
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #ede6e0;
+    cursor: pointer;
+}
+.search-result-item:hover { background: #f5ede5; }
+.add-friend-btn { background: #b47c9e; color: white; border: none; padding: 4px 12px; border-radius: 20px; cursor: pointer; }
+@media (max-width: 600px) {
+    .profile-stats-grid { grid-template-columns: repeat(2, 1fr); }
+    .profile-header { flex-direction: column; text-align: center; }
+}
+</style>
+
+<script>
+async function loadProfileStats() {
+    const response = await fetch('/profile/api/stats');
+    const data = await response.json();
+    document.getElementById('profileTasksCompleted').innerText = data.tasks_completed;
+    document.getElementById('profileCompletionRate').innerText = data.completion_rate + '%';
+    document.getElementById('profileThisWeek').innerText = data.this_week;
+}
+
+// Friend search
+const searchInput = document.getElementById('friendSearch');
+const resultsDiv = document.getElementById('searchResults');
+
+searchInput?.addEventListener('input', async (e) => {
+    const query = e.target.value;
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '';
+        return;
+    }
+    
+    const response = await fetch(`/friends/search?q=${encodeURIComponent(query)}`);
+    const users = await response.json();
+    
+    if (users.length) {
+        resultsDiv.innerHTML = users.map(u => `
+            <div class="search-result-item">
+                <span>${u.username} (Level ${u.level})</span>
+                <button class="add-friend-btn" onclick="addFriend(${u.id})">Add Friend</button>
+            </div>
+        `).join('');
+    } else {
+        resultsDiv.innerHTML = '<div class="search-result-item">No users found</div>';
+    }
+});
+
+async function addFriend(userId) {
+    const response = await fetch('/friends/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ user_id: userId })
+    });
+    const data = await response.json();
+    if (data.success) {
+        alert(data.message);
+        resultsDiv.innerHTML = '';
+        searchInput.value = '';
+    } else {
+        alert(data.error);
+    }
+}
+
+loadProfileStats();
+</script>
+{% endblock %}
